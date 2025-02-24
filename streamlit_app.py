@@ -107,11 +107,11 @@ else:
                 st.warning("Please check your API key and try again.")
 
         # Show a sample of loaded prompts (for debugging)
-        with st.expander("View loaded example prompts"):
-            st.write(f"Loaded {len(example_prompts)//2} example conversations")
-            if example_prompts:
-                for i in range(0, min(6, len(example_prompts)), 2):
-                    st.write(f"**Example {i//2 + 1}:**")
-                    st.write(example_prompts[i])
-                    st.write(example_prompts[i+1])
-                    st.write("---")
+        # with st.expander("View loaded example prompts"):
+        #     st.write(f"Loaded {len(example_prompts)//2} example conversations")
+        #     if example_prompts:
+        #         for i in range(0, min(6, len(example_prompts)), 2):
+        #             st.write(f"**Example {i//2 + 1}:**")
+        #             st.write(example_prompts[i])
+        #             st.write(example_prompts[i+1])
+        #             st.write("---")
