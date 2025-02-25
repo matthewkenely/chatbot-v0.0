@@ -28,10 +28,10 @@ def load_structured_prompts(character_name):
         return []
 
 # Use Streamlit secrets for API key
-if "GOOGLE_API_KEY" in st.secrets:
-    gemini_api_key = st.secrets["GOOGLE_API_KEY"]
-else:
-    gemini_api_key = None
+# if "GOOGLE_API_KEY" in st.secrets:
+#     gemini_api_key = st.secrets["GOOGLE_API_KEY"]
+# else:
+#     gemini_api_key = None
 
 # Passcode authentication
 authenticated = False
@@ -39,21 +39,20 @@ if "authenticated" in st.session_state:
     authenticated = st.session_state.authenticated
 
 if not authenticated:
-    passcode = st.text_input("Enter passcode to access the chatbot", type="password")
-    if passcode:
-        if "PASSCODE" in st.secrets and passcode == st.secrets["PASSCODE"]:
-            st.session_state.authenticated = True
-            authenticated = True
-            st.experimental_rerun()
-        else:
-            st.error("Incorrect passcode. Please try again.")
-            st.error(f"Passcode entered: {passcode}")
-            st.error(f"True passcode: {st.secrets.get('PASSCODE', 'not found')}")
-            st.error(st.secrets.api_credentials)
+    passcode = st.text_input("Enter key to access the chatbot", type="password")
+    # if passcode:
+    #     if "PASSCODE" in st.secrets and passcode == st.secrets["PASSCODE"]:
+    #         st.session_state.authenticated = True
+    #         authenticated = True
+    #         st.experimental_rerun()
+    #     else:
+    #         st.error("Incorrect key. Please try again.")
     st.stop()
 
 # Character name (for loading the appropriate CSV file)
 character_name = "caravaggio"
+
+gemini_api_key = passcode
 
 # Load structured prompts from CSV file in the repository
 structured_prompts = load_structured_prompts(character_name)
