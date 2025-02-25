@@ -49,7 +49,7 @@ if not authenticated:
             st.error("Incorrect passcode. Please try again.")
             st.error(f"Passcode entered: {passcode}")
             st.error(f"True passcode: {st.secrets.get('PASSCODE', 'not found')}")
-            st.error(st.secrets)
+            st.error(st.secrets.api_credentials)
     st.stop()
 
 # Character name (for loading the appropriate CSV file)
