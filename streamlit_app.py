@@ -47,9 +47,8 @@ if not authenticated:
             st.experimental_rerun()
         else:
             st.error("Incorrect passcode. Please try again.")
-            # Print true passcode in console
-            print(f"Passcode entered: {passcode}")
-            print(f"True passcode: {st.secrets.get('PASSCODE', 'not found')}")
+            st.error(f"Passcode entered: {passcode}")
+            st.error(f"True passcode: {st.secrets.get('PASSCODE', 'not found')}")
     st.stop()
 
 # Character name (for loading the appropriate CSV file)
