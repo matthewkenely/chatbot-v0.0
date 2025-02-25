@@ -51,7 +51,7 @@ if not authenticated:
             st.error(f"True passcode: {st.secrets.get('PASSCODE', 'not found')}")
 
             # print all os.getenvs
-            st.write(os.environ)
+            st.error(os.environ)
     st.stop()
 
 # Character name (for loading the appropriate CSV file)
