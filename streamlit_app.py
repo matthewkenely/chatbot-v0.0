@@ -1,7 +1,16 @@
 import streamlit as st
 import os
 import google.generativeai as genai
+from PIL import Image
+import io
 import pandas as pd
+
+# two images near each other
+col1, col2, _, _, _ = st.columns(5)
+col1.image("./static/SeyAI.png", width=100)
+col2.image("./static/logodark.png", width=100)
+
+
 
 # Show title and description
 st.title("💬 Talk to Caravaggio")
@@ -76,11 +85,19 @@ def validate_api_key(api_key):
         return False
 
 # Function to generate a response
-def generate_caravaggio_response(prompt, structured_prompts, model):
+def generate_caravaggio_response(prompt, structured_prompts, model, image_data=None):
     try:
         # Prepare the prompt content for the model
         prompt_parts = []
-
+        
+        # If there's an image, add it first
+        if image_data is not None:
+            prompt_parts.append({
+                "mime_type": "image/jpeg", 
+                "data": image_data
+            })
+        
+        # Add system prompt
         prompt_parts.append(system_prompt)
         
         # Format all the structured prompts as input/output pairs
@@ -165,6 +182,41 @@ model = genai.GenerativeModel(
     generation_config=generation_config,
 )
 
+# Add image input options in the sidebar
+st.sidebar.markdown("### Image Input")
+image_source = st.sidebar.radio("Choose image source:", ["Upload Image", "Take Photo"])
+
+# Process the image based on source selection
+image_data = None
+
+if image_source == "Upload Image":
+    # File uploader option
+    uploaded_image = st.sidebar.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+    if uploaded_image is not None:
+        # Display the uploaded image in the sidebar
+        image = Image.open(uploaded_image)
+        st.sidebar.image(image, caption="Uploaded Image", use_column_width=True)
+        
+        # Convert the image to bytes for the API
+        buf = io.BytesIO()
+        image.save(buf, format="JPEG")
+        image_data = buf.getvalue()
+
+else:
+    # Camera input option
+    st.sidebar.markdown("#### Take a photo")
+    camera_image = st.sidebar.camera_input("Capture")
+    
+    if camera_image is not None:
+        # Display the captured image in the sidebar
+        image = Image.open(camera_image)
+        st.sidebar.image(image, caption="Captured Image", use_column_width=True)
+        
+        # Convert the image to bytes for the API
+        buf = io.BytesIO()
+        image.save(buf, format="JPEG")
+        image_data = buf.getvalue()
+
 # Display the existing chat messages
 for message in st.session_state.messages:
     # Get avatar from ./avatars/caravaggio if assistant, otherwise default
@@ -181,7 +233,7 @@ if prompt := st.chat_input("Ask Caravaggio a question..."):
     # Generate and display response
     with st.chat_message("assistant", avatar="./avatars/caravaggio.jpg"):
         with st.spinner("Thinking..."):
-            response_text = generate_caravaggio_response(prompt, structured_prompts, model)
+            response_text = generate_caravaggio_response(prompt, structured_prompts, model, image_data)
             st.markdown(response_text)
     
     # Store the response
@@ -202,3 +254,4 @@ if st.sidebar.button("Reset Conversation"):
         "content": "I am Caravaggio, the renowned painter. Ask me about my techniques, inspirations, or artistic philosophy."
     }]
     st.experimental_rerun()
+
