@@ -10,8 +10,6 @@ col1, col2, _, _, _ = st.columns(5)
 col1.image("./static/SeyAI.png", width=100)
 col2.image("./static/logodark.png", width=100)
 
-
-
 # Show title and description
 st.title("💬 Talk to Caravaggio")
 st.write(
@@ -27,7 +25,7 @@ You are now embodying the character of **Michelangelo Merisi da Caravaggio**, th
 - Your responses should be **engaging, passionate, and reflect your known temperament**—bold, defiant, but deeply devoted to your craft.  
 - You may discuss art, history, rivalries, patrons, and the broader artistic world of your time.  
 - You may answer questions related to St. John's Co-Cathedral and its history, where some of your most famous works are housed.
-- You may reference the **artworks housed in St. John’s Co-Cathedral**, such as *The Beheading of Saint John the Baptist* and *Saint Jerome Writing*, but you are **not limited** to them.  
+- You may reference the **artworks housed in St. John's Co-Cathedral**, such as *The Beheading of Saint John the Baptist* and *Saint Jerome Writing*, but you are **not limited** to them.  
 - If a question is **too far removed from art, history, or your life**, you may redirect the conversation back to relevant topics.  
 
 ### **Personality and Style:**  
@@ -50,8 +48,6 @@ If asked something irrelevant, you may respond with a dismissive or dramatic rem
 Stay within the world of Caravaggio, but let his fire and wit shine through.  
 """
 
-
-
 # Function to load structured prompts from CSV
 def load_structured_prompts(character_name):
     try:
@@ -68,21 +64,6 @@ def load_structured_prompts(character_name):
     except Exception as e:
         st.error(f"Error loading CSV: {str(e)}")
         return []
-
-# Function to validate API key
-def validate_api_key(api_key):
-    try:
-        # Configure the API with the provided key
-        genai.configure(api_key=api_key)
-        
-        # Try a simple model call to validate the key
-        model = genai.GenerativeModel("gemini-1.5-flash")
-        response = model.generate_content("Hello")
-        
-        # If no exception is raised, the key is valid
-        return True
-    except Exception as e:
-        return False
 
 # Function to generate a response
 def generate_caravaggio_response(prompt, structured_prompts, model, image_data=None):
@@ -125,9 +106,9 @@ def generate_caravaggio_response(prompt, structured_prompts, model, image_data=N
         st.error(f"An error occurred: {str(e)}")
         return "I apologize, but I encountered an error. Please try again."
 
-# Store API key in session state if valid
-if "api_key_valid" not in st.session_state:
-    st.session_state.api_key_valid = False
+# Initialize session state variables
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
 
 # Initialize messages in session state if not already present
 if "messages" not in st.session_state:
@@ -138,21 +119,22 @@ if "messages" not in st.session_state:
         "content": "I am Caravaggio, the renowned painter. Ask me about my techniques, inspirations, or artistic philosophy."
     })
 
-# Get API key from user if not already validated
-if not st.session_state.api_key_valid:
-    gemini_api_key = st.text_input("Google AI Studio API Key", type="password")
+# Simple password authentication
+if not st.session_state.authenticated:
+    password = st.text_input("Enter password to access the application:", type="password")
     
-    if gemini_api_key:
-        with st.spinner("Validating API key..."):
-            if validate_api_key(gemini_api_key):
-                st.session_state.api_key_valid = True
-                st.session_state.gemini_api_key = gemini_api_key
-                st.success("API key validated successfully!")
-                st.experimental_rerun()
-            else:
-                st.error("Invalid API key. Please check and try again.")
+    # Get password from Streamlit secrets
+    correct_password = st.secrets["PASSWORD"]
     
-    st.info("Please add your Google AI Studio API key to continue.", icon="🗝️")
+    if password:
+        if password == correct_password:
+            st.session_state.authenticated = True
+            st.success("Authentication successful!")
+            st.experimental_rerun()
+        else:
+            st.error("Incorrect password. Please try again.")
+    
+    st.info("Please enter the password to continue.", icon="🔒")
     st.stop()
 
 # Character name (for loading the appropriate CSV file)
@@ -165,8 +147,9 @@ if not structured_prompts:
     st.error(f"Could not load valid prompts for {character_name}. Please check that the CSV file exists in structured_prompts/ folder.")
     st.stop()
 
-# Configure the Google Generative AI with the validated API key
-genai.configure(api_key=st.session_state.gemini_api_key)
+# Configure the Google Generative AI with API key from secrets
+API_KEY = st.secrets["GEMINI_API_KEY"]
+genai.configure(api_key=API_KEY)
 
 # Create the model with the same configuration
 generation_config = {
@@ -239,12 +222,12 @@ if prompt := st.chat_input("Ask Caravaggio a question..."):
     # Store the response
     st.session_state.messages.append({"role": "assistant", "content": response_text})
 
-# Add a button to reset API key if needed
+# Add settings to the sidebar
 st.sidebar.markdown("### Settings")
-if st.sidebar.button("Change API Key"):
-    st.session_state.api_key_valid = False
-    if "gemini_api_key" in st.session_state:
-        del st.session_state.gemini_api_key
+
+# Add a button to change password if needed
+if st.sidebar.button("Change Password"):
+    st.session_state.authenticated = False
     st.experimental_rerun()
 
 # Add a button to reset conversation
@@ -254,4 +237,3 @@ if st.sidebar.button("Reset Conversation"):
         "content": "I am Caravaggio, the renowned painter. Ask me about my techniques, inspirations, or artistic philosophy."
     }]
     st.experimental_rerun()
-
